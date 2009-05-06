@@ -1,0 +1,1 @@
+node attributes that aren't valid html (used for values in next node) should be stripped before rendering
