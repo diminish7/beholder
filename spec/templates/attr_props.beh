@@ -3,6 +3,6 @@
 		<title>Hello World</title>
 	</head>
 	<body message_class="beholder">
-		<p class="prop:message_class">What's up, world?</p>
+		<span component="simple_prop_component" message_class="beholder" />
 	</body>
 </html>
