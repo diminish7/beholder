@@ -1,0 +1,10 @@
+<html>
+	<head>
+		<title>Hello World</title>
+	</head>
+	<body>
+		<p>
+			<span component="raw"/>
+		</p>
+	</body>
+</html>

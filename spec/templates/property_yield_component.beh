@@ -1,0 +1,4 @@
+<div>
+	Message inside the property_yield_component: <span component="raw" value="prop:message"></span> 
+	<span component="yield"></span>
+</div>

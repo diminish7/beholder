@@ -1,0 +1,10 @@
+<html>
+	<head>
+		<title>Hello World</title>
+	</head>
+	<body>
+		<span component="simple_yield_component">
+			This text is inside the simple_yield_component
+		</span>
+	</body>
+</html>

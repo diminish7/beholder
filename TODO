@@ -1,1 +1,4 @@
-node attributes that aren't valid html (used for values in next node) should be stripped before rendering
+1. logic components (if, elsif, else; foreach; counter; raw; yield)
+2. Cache parsed XML
+3. Ability to add own logic components (Beholder.register_component(name) { |node| ... })
+4. Compatibility with Rails, Waves, Sinatra, Rack

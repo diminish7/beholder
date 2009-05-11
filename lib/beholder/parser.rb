@@ -8,6 +8,7 @@ module Beholder
     
     #Parses a template and returns the full HTML string
     def parse(template)
+      @component_stack = []
       path = resolve_template_path(template)
       raise TemplateNotFoundException.new(template) unless File.exist?(path)
       html = open(path) { |f| Hpricot(f) }
@@ -23,7 +24,6 @@ module Beholder
     end
     
     #Evaluate a node recursively
-    # TODO: If node references another template, swap it out with new_node = node.swap(newly_evald_node)
     def evaluate(node, local_attrs = {})
       #Evaluate dynamic properties in a node
       update_attributes(node, local_attrs)
@@ -49,11 +49,19 @@ module Beholder
       #TODO: If this node contain content, need to allow a component to yield it
       # Maybe pass in a yield stack?  Need to be able to yield at multiple depths...
       if node.respond_to?(:attributes) && (component = node.attributes['component'])
-        path = resolve_template_path(component)
-        raise TemplateNotFoundException.new(template) unless File.exist?(path)
-        new_node = node.swap(open(path) { |f| f.read })
+        @component_stack.push(node)
+        #Try to resolve as a logic component
+        if self.respond_to?(mname = "_#{component}")
+          new_node = self.send(mname, node)
+        else
+          #Then try to resolve as a partial
+          path = resolve_template_path(component)
+          raise TemplateNotFoundException.new(template) unless File.exist?(path)
+          new_node = node.swap(open(path) { |f| f.read })
+        end
         new_node = [ new_node ] unless new_node.respond_to?(:each)
         new_node.each { |n| evaluate(n, node.attributes) }
+        @component_stack.pop
         true
       else
         false
@@ -73,6 +81,8 @@ module Beholder
         nil
       elsif local_attrs.has_key?(name)
         local_attrs[name]
+      elsif (parent = @component_stack.last) && (attr = parent.attributes[name])
+        attr
       else
         nil
       end
