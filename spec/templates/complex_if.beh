@@ -1,0 +1,16 @@
+<html>
+	<head>
+		<title>Hello World</title>
+	</head>
+	<body>
+		<span component="if" condition="true">
+			Body of 'if' component
+		</span>
+		<span component="elsif" condition="true">
+			Body of 'elsif' component
+		</span>
+		<span component="else">
+			Body of 'else' component
+		</span>
+	</body>
+</html>

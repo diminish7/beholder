@@ -40,9 +40,21 @@ describe "Beholder::Parser's logic components" do
   
   describe "if" do
     
-    it "should raise a MissingAttributeException if the attribute 'condition' is not present"
-    it "should replace the contents of the node if the value of 'condition' is true"
-    it "should ignore component:elsif and component:else if the value of 'condition' is true"
+    it "should raise a MissingAttributeException if the attribute 'condition' is not present" do
+      lambda { @parser.parse('invalid_if') }.should raise_error(Beholder::MissingAttributeException)
+    end
+    
+    it "should replace the contents of the node if the value of 'condition' is true" do
+      strip_html(@parser.parse('simple_if')).should == "<html><head><title>Hello World</title></head><body>Body of 'if' component</body></html>"
+    end
+    
+    it "should remove the node if the value of 'condition' is false" do
+      strip_html(@parser.parse('simple_if_false')).should == "<html><head><title>Hello World</title></head><body></body></html>"
+    end
+    
+    it "should ignore component:elsif and component:else if the value of 'condition' is true" do
+      strip_html(@parser.parse('complex_if')).should == "<html><head><title>Hello World</title></head><body>Body of 'if' component</body></html>"
+    end
     
   end
   
@@ -52,7 +64,9 @@ describe "Beholder::Parser's logic components" do
       lambda { @parser.parse('invalid_elsif') }.should raise_error(Beholder::DependantComponentException)
     end
     
-    it "should replace the contents of the node if the value of 'condition' is true"
+    it "should replace the contents of the node if the value of 'condition' is true" do
+      strip_html(@parser.parse('complex_elsif')).should == "<html><head><title>Hello World</title></head><body>Body of 'elsif' component</body></html>"
+    end
   end
   
   describe "else" do
@@ -61,8 +75,9 @@ describe "Beholder::Parser's logic components" do
       lambda { @parser.parse('invalid_else') }.should raise_error(Beholder::DependantComponentException)
     end
     
-    it "should replace the contents of the node if the value of 'condition' is false for component:if"
-    it "should replace the contents of the node if the value of 'condition' is false for component:if and all component:elsifs"
+    it "should replace the contents of the node if the value of 'condition' is false for component:if and all component:elsifs" do
+      strip_html(@parser.parse('else')).should == "<html><head><title>Hello World</title></head><body>Body of 'else' component</body></html>"
+    end
     
   end
   
