@@ -1,0 +1,6 @@
+<span component="nested_yield_component2" message="beholder2">
+	<span>
+		Message inside the nested_yield_component1: <span component="raw" value="prop:message"></span>
+	</span>
+	<span component="yield"></span>
+</span>

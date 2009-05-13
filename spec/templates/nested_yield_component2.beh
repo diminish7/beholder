@@ -1,0 +1,6 @@
+<div>
+	<span>
+		Message inside the nested_yield_component2: <span component="raw" value="prop:message"></span>
+	</span>
+	<span component="yield"></span>
+</div>

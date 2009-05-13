@@ -28,7 +28,9 @@ describe "Beholder::Parser's logic components" do
       strip_html(@parser.parse('simple_yield_container')).should == "<html><head><title>Hello World</title></head><body><div>This text is inside the simple_yield_component</div></body></html>"
     end
     
-    it "should correctly yield nested components"
+    it "should correctly yield nested components" do
+      strip_html(@parser.parse('nested_yield_container')).should == "<html><head><title>Hello World</title></head><body><div><span>Message inside the nested_yield_component2: beholder2</span><span>Message inside the nested_yield_component1: beholder</span>Message inside the nested_yield_container: beholder</div></body></html>"
+    end
     
     it "should provide access to the parent component's attributes for the yielded node" do
       strip_html(@parser.parse('property_yield_container')).should == "<html><head><title>Hello World</title></head><body><div>Message inside the property_yield_component: beholder Message inside the property_yield_container: beholder</div></body></html>"

@@ -11,8 +11,8 @@ module Beholder
     
     #Replaces the node with the contents of the node
     def _yield(node)
-      raise DependantComponentException.new("Cannot yield without a parent component") if @component_stack.length < 2 #Must have at least the yield component and a parent component
-      parent = @component_stack[@component_stack.length-2]  #Second to the last element is the parent component of the yield node
+      raise DependantComponentException.new("Cannot yield without a parent component") if @component_stack.empty? #Must have at least the yield component and a parent component
+      parent = @component_stack.pop
       parent.attributes.each do |key, value|
         node.set_attribute(key, value) unless node.attributes[key] #Merge attributes with parent component's
       end

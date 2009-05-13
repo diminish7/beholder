@@ -49,7 +49,7 @@ module Beholder
       #TODO: If this node contain content, need to allow a component to yield it
       # Maybe pass in a yield stack?  Need to be able to yield at multiple depths...
       if node.respond_to?(:attributes) && (component = node.attributes['component'])
-        @component_stack.push(node)
+        @component_stack.push(node) unless node.attributes['component'] == 'yield'
         #Try to resolve as a logic component
         if self.respond_to?(mname = "_#{component}")
           new_node = self.send(mname, node)
@@ -61,7 +61,7 @@ module Beholder
         end
         new_node = [ new_node ] unless new_node.respond_to?(:each)
         new_node.each { |n| evaluate(n, node.attributes) }
-        @component_stack.pop
+        @component_stack.pop if @component_stack.last == node #It might have already been popped if we've yielded already
         true
       else
         false
