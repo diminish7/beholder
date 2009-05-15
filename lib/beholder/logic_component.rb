@@ -63,7 +63,8 @@ module Beholder
     # iteration's counter to the counter attribute.
     # Raises MissingAttributeException if count is not present
     def _count(node)
-      
+      raise MissingAttributeException.new("Missing 'count' attribute in component:count") unless node.attributes.has_key?('count')
+      #TODO
     end
     
   protected

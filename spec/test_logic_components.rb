@@ -87,6 +87,13 @@ describe "Beholder::Parser's logic components" do
   
   describe "count" do
     
+    it "should raise MissingAttributeException if it is missing the 'count' attribute" do
+      lambda { @parser.parse('invalid_count') }.should raise_error(Beholder::MissingAttributeException)
+    end
+    
+    it "should yield the block count times" do
+      strip_html(@parser.parse('count')).should == "<html><head><title>Hello World</title></head><body><ol><li>Count: 0</li></ol><li>Count: 1</li></ol><li>Count: 2</li></ol><li>Count: 3</li></ol><li>Count: 4</li></ol></body></html>"
+    end
   end
   
 end
