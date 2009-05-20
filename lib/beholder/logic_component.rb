@@ -1,12 +1,13 @@
 #Logic components for the parser
 module Beholder
-  class Parser
+  module LogicComponent
+    include NodeUtils
     
     #Replaces the node with text from the value attribute
     # Raises MissingAttributeException if value attribute is not present
     def _raw(node)
       raise MissingAttributeException.new("'value' attribute not present in component:raw") unless node.attributes.has_key?("value")
-      node.swap node.attributes["value"]
+      swap(node, Nokogiri::HTML.fragment(node.attributes["value"].to_s).children)
     end
     
     #Replaces the node with the contents of the node
@@ -64,7 +65,17 @@ module Beholder
     # Raises MissingAttributeException if count is not present
     def _count(node)
       raise MissingAttributeException.new("Missing 'count' attribute in component:count") unless node.attributes.has_key?('count')
-      #TODO
+      body_html = node.innerHTML
+      body = []
+      node.attributes['count'].to_i.times do |i|
+        iter_body = Hpricot(body_html)
+        require 'rubygems'; require 'ruby-debug'; debugger
+        2
+        #TODO: This get's evaluated twice now, becuase it gets evaluated in resolve_as_component
+        evaluate(iter_body, {:count => i})
+        body << iter_body
+      end
+      node.parent.replace_child(node, body.flatten)
     end
     
   protected

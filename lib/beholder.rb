@@ -1,6 +1,10 @@
 require 'rubygems'
-require 'hpricot'
+require "nokogiri"
 
-here = File.dirname(__FILE__)
+dir = File.join(File.dirname(__FILE__), "beholder")
 
-Dir[File.join(here, "beholder", "*.rb")].each { |lib| require lib }
+require File.join(dir, "exception.rb")
+require File.join(dir, "node_utils.rb")
+require File.join(dir, "logic_component.rb")
+require File.join(dir, "parser.rb")
+require File.join(dir, "view.rb")

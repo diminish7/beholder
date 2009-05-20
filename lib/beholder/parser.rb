@@ -1,17 +1,14 @@
 module Beholder
-  class Parser
-    
-    #Initialize the parser with the default template path
-    def initialize(template_path)
-      @template_path = template_path
-    end
+  module Parser
+    include LogicComponent
+    include NodeUtils
     
     #Parses a template and returns the full HTML string
     def parse(template)
       @component_stack = []
       path = resolve_template_path(template)
       raise TemplateNotFoundException.new(template) unless File.exist?(path)
-      html = open(path) { |f| Hpricot(f) }
+      html = open(path) { |f| Nokogiri::HTML.parse(f) }
       evaluate(html)
       html.to_s
     end
@@ -33,44 +30,16 @@ module Beholder
     
     #Check each attribute for the appearance of 'prop:' and replace it with the evaluated property
     def update_attributes(node, local_attrs = {})
-      if node.respond_to?(:attributes)
+      if node.attributes
         node.attributes.each do |key, value|
-          if value =~ /^prop:/
-            val = evaluate_attribute(value.slice(5, value.length-5), local_attrs)
+          s_val = value.to_s
+          if s_val =~ /^prop:/
+            val = evaluate_attribute(s_val.slice(5, s_val.length-5), local_attrs)
             raise InvalidPropertyException.new("Property #{value} cannot be resolved") if val.nil?
             node.set_attribute(key, val) if val
           end
         end
       end
-    end
-    
-    #Check to see if there is a 'component' attribute and swap the node for the component if applicable
-    def resolve_as_component(node)
-      #TODO: If this node contain content, need to allow a component to yield it
-      # Maybe pass in a yield stack?  Need to be able to yield at multiple depths...
-      if node.respond_to?(:attributes) && (component = node.attributes['component'])
-        @component_stack.push(node) unless node.attributes['component'] == 'yield'
-        #Try to resolve as a logic component
-        if self.respond_to?(mname = "_#{component}")
-          new_node = self.send(mname, node)
-        else
-          #Then try to resolve as a partial
-          path = resolve_template_path(component)
-          raise TemplateNotFoundException.new(template) unless File.exist?(path)
-          new_node = node.swap(open(path) { |f| f.read })
-        end
-        new_node = [ new_node ] unless new_node.respond_to?(:each)
-        new_node.each { |n| evaluate(n, node.attributes) }
-        @component_stack.pop if @component_stack.last == node #It might have already been popped if we've yielded already
-        true
-      else
-        false
-      end
-    end
-    
-    #Check to see if this can have children and iterate through the children
-    def resolve_children(node)
-      node.each_child {|child| evaluate(child)} if node.respond_to?(:each_child)
     end
     
     #Evaluate an attribute
@@ -86,6 +55,32 @@ module Beholder
       else
         nil
       end
+    end
+    
+    #Check to see if there is a 'component' attribute and swap the node for the component if applicable
+    def resolve_as_component(node)
+      if node.attributes && (component = node.attributes['component'])
+        @component_stack.push(node) unless node.attributes['component'] == 'yield'
+        #Try to resolve as a logic component
+        if self.respond_to?(mname = "_#{component}")
+          node_set = self.send(mname, node)
+        else
+          #Then try to resolve as a partial
+          path = resolve_template_path(component.to_s)
+          raise TemplateNotFoundException.new(template) unless File.exist?(path)
+          node_set = swap(node, Nokogiri::HTML.fragment((open(path) { |f| f.read })).children)
+        end
+        node_set.each { |n| evaluate(n, node.attributes) }
+        @component_stack.delete(node)
+        true
+      else
+        false
+      end
+    end
+    
+    #Check to see if this can have children and iterate through the children
+    def resolve_children(node)
+      node.children.each {|child| evaluate(child)} if node.children
     end
     
   end

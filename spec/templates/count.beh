@@ -3,10 +3,10 @@
 		<title>Hello World</title>
 	</head>
 	<body>
-		<ol>
-			<span component="count" count="5">
-				<li>Count: <span component="raw" value="prop:count"></span></li>
-			</span>
-		</ol>
+		<span component="count" count="5">
+			<div>
+				Count: <span component="raw" value="prop:count">Hello</span>
+			</div>
+		</span>
 	</body>
 </html>
