@@ -22,10 +22,12 @@ module Beholder
     
     #Evaluate a node recursively
     def evaluate(node, local_attrs = {})
-      #Evaluate dynamic properties in a node
-      update_attributes(node, local_attrs)
-      #Evaluate node as a component, if applicable, otherwise recurse down the tree
-      resolve_as_component(node) || resolve_children(node)
+      unless removed?(node)
+        #Evaluate dynamic properties in a node
+        update_attributes(node, local_attrs)
+        #Evaluate node as a component, if applicable, otherwise recurse down the tree
+        resolve_as_component(node) || resolve_children(node)
+      end
     end
     
     #Check each attribute for the appearance of 'prop:' and replace it with the evaluated property
@@ -60,7 +62,7 @@ module Beholder
     #Check to see if there is a 'component' attribute and swap the node for the component if applicable
     def resolve_as_component(node)
       if node.attributes && (component = node.attributes['component'])
-        @component_stack.push(node) unless node.attributes['component'] == 'yield'
+        @component_stack.push(node) unless node.attributes['component'].to_s == 'yield'
         #Try to resolve as a logic component
         if self.respond_to?(mname = "_#{component}")
           node_set = self.send(mname, node)

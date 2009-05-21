@@ -17,7 +17,7 @@ module Beholder
       parent.attributes.each do |key, value|
         node.set_attribute(key, value) unless node.attributes[key] #Merge attributes with parent component's
       end
-      node.parent.replace_child(node, parent.children)
+      swap(node, parent.children)
     end
     
    
@@ -26,19 +26,21 @@ module Beholder
     def _if(node)
       raise MissingAttributeException.new("Missing 'condition' attribute in component:if") unless node.attributes.has_key?('condition')
       siblings = get_conditional_nodes(node)
+      node_set = nil
       #Evaluate the 'if' clause
-      found_truth = evaluate_conditional(node)
+      node_set = evaluate_conditional(node)
       #Evaluate (or short-circuit) the 'elsif' clauses
       siblings.each do |sibling|
-        if sibling.attributes['component'] == 'elsif'
-          found_truth ? sibling.parent.children.delete(sibling) : found_truth = evaluate_conditional(sibling)
-        elsif sibling.attributes['component'] == 'else'
-          found_truth ? sibling.parent.children.delete(sibling) : sibling.parent.replace_child(sibling, sibling.children)
+        if is_component?(sibling, 'elsif')
+          node_set ? remove(sibling) : node_set = evaluate_conditional(sibling)
+        elsif is_component?(sibling, 'else')
+          node_set ? remove(sibling) : node_set = swap(sibling, sibling.children)
           break #'Else' must be the last clause
         else
           raise "How did you get here?"
         end
       end
+      node_set || []
     end
     
     #Raises a DependantComponentException.  Should only be executed in the scope of an _if
@@ -65,43 +67,44 @@ module Beholder
     # Raises MissingAttributeException if count is not present
     def _count(node)
       raise MissingAttributeException.new("Missing 'count' attribute in component:count") unless node.attributes.has_key?('count')
-      body_html = node.innerHTML
-      body = []
-      node.attributes['count'].to_i.times do |i|
-        iter_body = Hpricot(body_html)
-        require 'rubygems'; require 'ruby-debug'; debugger
-        2
+      body_html = node.children.to_s
+      body = nil
+      node.attributes['count'].to_s.to_i.times do |i|
+        iter_body = Nokogiri::HTML.fragment(body_html).children
         #TODO: This get's evaluated twice now, becuase it gets evaluated in resolve_as_component
-        evaluate(iter_body, {:count => i})
-        body << iter_body
+        iter_body.each { |child| evaluate(child, {:count => i}) }
+        if body
+          iter_body.each { |child| body.after(child) }
+        else
+          body = iter_body
+        end
       end
-      node.parent.replace_child(node, body.flatten)
+      swap(node, body)
     end
     
   protected
     #Considers the truth of the condition attribute, and either replaces the node with it's contents, or deletes the node
     def evaluate_conditional(node)
-      condition = node.attributes['condition']
-      if !(condition.nil? || condition == false || condition == "false")
+      condition = node.attributes['condition'].to_s
+      if !(condition.nil? || condition == "false")
         #True
-        node.parent.replace_child(node, node.children)
-        true
+        swap(node, node.children)
       else
         #False
-        node.parent.children.delete(node)
-        false
+        remove(node)
+        nil
       end
     end
     
     #Get all related nodes in a conditional
     def get_conditional_nodes(if_node)
       siblings = []
-      sibling = if_node.next_node
-      sibling = sibling.next_node if empty_text_node?(sibling) #Skip whitespace text nodes
+      sibling = if_node.next
+      sibling = sibling.next if empty_text_node?(sibling) #Skip whitespace text nodes
       while is_component?(sibling, 'elsif') do
         siblings << sibling
-        sibling = sibling.next_node
-        sibling = sibling.next_node if empty_text_node?(sibling)
+        sibling = sibling.next
+        sibling = sibling.next if empty_text_node?(sibling)
       end
       siblings << sibling if is_component?(sibling, 'else')
       siblings
@@ -109,12 +112,12 @@ module Beholder
     
     #Determine if a node has an attribute
     def is_component?(node, component)
-      node && node.respond_to?(:attributes) && node.attributes['component'] == component
+      node && node.respond_to?(:attributes) && node.attributes['component'].to_s == component
     end
     
     #Determine if a node is an empty text node (a text node with only whitespace)
     def empty_text_node?(node)
-      node.kind_of?(Hpricot::Text) && node.to_s.strip.empty?
+      node.kind_of?(Nokogiri::XML::Text) && node.to_s.strip.empty?
     end
     
   end

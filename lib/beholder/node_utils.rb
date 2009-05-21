@@ -8,11 +8,20 @@ module Beholder
       orig.replace(replace_node)
       i = 1
       while i < node_set.length do
-        replace_node.add_next_sibling(set[i])
+        replace_node.add_next_sibling(node_set[i])
         replace_node = node_set[i]
         i += 1
       end
+      @removed << orig
       node_set
+    end
+    
+    def remove(node)
+      @removed << node.remove unless node.nil?
+    end
+    
+    def removed?(node)
+      @removed.include?(node)
     end
     
   end
