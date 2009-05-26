@@ -91,9 +91,9 @@ describe "Beholder::LogicComponent" do
       lambda { @view.parse('invalid_count') }.should raise_error(Beholder::MissingAttributeException)
     end
     
-#    it "should yield the block count times" do
-#      strip_html(@view.parse('count')).should == "#{DOCTYPE}<html><head><title>Hello World</title></head><body><ol><li>Count: 0</li></ol><li>Count: 1</li></ol><li>Count: 2</li></ol><li>Count: 3</li></ol><li>Count: 4</li></ol></body></html>"
-#    end
+    it "should yield the block count times" do
+      strip_html(@view.parse('count')).should == "#{DOCTYPE}<html><head><title>Hello World</title></head><body><ol><li>Count: 0</li><li>Count: 1</li><li>Count: 2</li><li>Count: 3</li><li>Count: 4</li></ol></body></html>"
+    end
   end
   
 end

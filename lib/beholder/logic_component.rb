@@ -70,16 +70,19 @@ module Beholder
       body_html = node.children.to_s
       body = nil
       node.attributes['count'].to_s.to_i.times do |i|
-        iter_body = Nokogiri::HTML.fragment(body_html).children
-        #TODO: This get's evaluated twice now, becuase it gets evaluated in resolve_as_component
-        iter_body.each { |child| evaluate(child, {:count => i}) }
+        iter_body = Nokogiri::HTML.fragment(body_html)
+        #TODO: This get's evaluated twice now, because it gets evaluated in resolve_as_component
+        iter_body.children.each do |child| 
+          node.set_attribute('index', i.to_s)
+          evaluate(child)
+        end
         if body
-          iter_body.each { |child| body.after(child) }
+          iter_body.children.each { |child| body.children.last.add_next_sibling(child) }
         else
           body = iter_body
         end
       end
-      swap(node, body)
+      swap(node, body.children)
     end
     
   protected
