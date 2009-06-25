@@ -8,7 +8,7 @@ module Beholder
       @component_stack = []
       path = resolve_template_path(template)
       raise TemplateNotFoundException.new(template) unless File.exist?(path)
-      html = open(path) { |f| Nokogiri::HTML.parse(f) }
+      html = open(path) { |f| Nokogiri::HTML.parse(f.read) }
       evaluate(html)
       html.to_s
     end
